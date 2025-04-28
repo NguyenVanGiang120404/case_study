@@ -1,0 +1,88 @@
+* { margin: 0; padding: 0; box-sizing: border-box; } /* Reset margin, padding và box-sizing */
+body {
+  background-color: #282828; /* Màu nền của trang */
+  font-family: 'Arial', sans-serif; /* Chọn font cho văn bản */
+  color: #fff; /* Màu chữ là trắng */
+  display: flex;
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  height: 100vh; /* Chiều cao bằng chiều cao của màn hình */
+  overflow: hidden; /* Không cho phép cuộn màn hình */
+  text-align: center;
+  flex-direction: column; /* Sắp xếp các phần tử theo chiều dọc */
+  padding: 20px;
+}
+#gameCanvas {
+  background-color: #444; /* Màu nền của canvas */
+  border: 5px solid #fff; /* Viền trắng xung quanh canvas */
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Hiệu ứng bóng nhẹ cho canvas */
+  margin-top: 20px; /* Khoảng cách từ trên xuống */
+  border-radius: 10px; /* Bo góc cho canvas */
+}
+#score {
+  font-size: 30px; /* Kích thước chữ điểm */
+  font-weight: bold; /* Đậm chữ */
+  margin-bottom: 20px; /* Khoảng cách giữa điểm và canvas */
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5); /* Hiệu ứng đổ bóng cho chữ điểm */
+}
+#gameOverMessage, #victoryMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Căn giữa thông báo */
+  color: white;
+  font-size: 40px; /* Kích thước chữ */
+  font-weight: bold;
+  display: none; /* Ban đầu ẩn thông báo */
+  text-align: center;
+  z-index: 3;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5); /* Hiệu ứng đổ bóng */
+  background: rgba(0, 0, 0, 0.7); /* Nền mờ cho thông báo */
+  padding: 20px 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); /* Hiệu ứng bóng */
+}
+#victoryMessage p {
+  margin-bottom: 20px;
+  font-size: 45px; /* Chữ "Chiến thắng" to hơn */
+  color: #ffdf00; /* Màu vàng */
+  text-shadow: 3px 3px 15px rgba(0, 0, 0, 0.7); /* Đổ bóng mạnh */
+}
+#gameOverMessage p {
+  margin-bottom: 20px;
+}
+#gameOverMessage button, #startButton {
+  padding: 12px 30px;
+  font-size: 20px;
+  background-color: #ff6f00; /* Màu nền của nút */
+  color: white;
+  border: none;
+  border-radius: 12px; /* Bo góc cho nút */
+  cursor: pointer; /* Hiển thị con trỏ chuột khi di chuyển qua */
+  margin-top: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Hiệu ứng bóng */
+  transition: all 0.3s ease; /* Hiệu ứng chuyển động */
+  font-weight: bold;
+}
+#gameOverMessage button:hover, #startButton:hover {
+  background-color: #ff8f00; /* Màu nền khi hover */
+  transform: scale(1.05); /* Hiệu ứng phóng to khi hover */
+}
+#startButton {
+    position: absolute; /* Đặt vị trí tuyệt đối */
+    top: 50%; /* Căn giữa theo chiều dọc */
+    left: 50%; /* Căn giữa theo chiều ngang */
+    transform: translate(-50%, -50%); /* Điều chỉnh lại vị trí để căn giữa chính xác */
+    padding: 15px 40px;
+    font-size: 22px;
+    background-color: #28a745; /* Màu nền của nút */
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+  }
+  
+  #startButton:hover {
+    background-color: #218838; /* Màu nền khi hover */
+    transform: scale(1.05); /* Hiệu ứng phóng to khi hover */
+  }
+  

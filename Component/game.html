@@ -87,24 +87,6 @@
       background-color: #218838;
       transform: scale(1.05);
     }
-    .firework {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: red;
-      animation: explode 1s forwards;
-    }
-    @keyframes explode {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(5);
-        opacity: 0;
-      }
-    }
   </style>
 </head>
 <body>
@@ -130,6 +112,7 @@
     let gameInterval;
     let isGameOver = false;
     let isStarted = false;
+    let level = 1;
 
     let car = {
       x: canvas.width / 2 - 40,
@@ -176,8 +159,9 @@
     }
 
     function moveObstacles() {
+      let speed = level === 1 ? 1 : 2; // Tốc độ vật cản khác nhau tùy theo level
       for (let i = obstacles.length - 1; i >= 0; i--) {
-        obstacles[i].y += 1;
+        obstacles[i].y += speed;
         if (obstacles[i].y > canvas.height) {
           obstacles.splice(i, 1);
           score++;
@@ -241,29 +225,24 @@
       return false;
     }
 
-    function createFireworks() {
-      const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33FF'];
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height / 2; // Bắn pháo hoa từ trên
-      const color = colors[Math.floor(Math.random() * colors.length)];
-
-      const firework = document.createElement('div');
-      firework.classList.add('firework');
-      firework.style.left = `${x}px`;
-      firework.style.top = `${y}px`;
-      firework.style.backgroundColor = color;
-      document.body.appendChild(firework);
-
-      setTimeout(() => {
-        firework.remove();
-      }, 1000); // Xóa pháo hoa sau 1 giây
-    }
-
     function checkVictory() {
-      if (score >= 15 && !isGameOver) {
-        endGame();
+      if (level === 1 && score >= 30) {
+        level = 2;
         document.getElementById('victoryMessage').style.display = 'block';
-        setTimeout(createFireworks, 500);
+        document.getElementById('victoryMessage').innerHTML = '<p>🎉 Bạn đã chuyển sang Level 2! 🎉</p>';
+        document.getElementById('score').textContent = 'Điểm: ' + score + ' - Level 2';
+        setTimeout(() => {
+          document.getElementById('victoryMessage').style.display = 'none';
+          obstacles = [];
+        }, 2000);
+      }
+
+      if (level === 2 && score >= 40) {
+        document.getElementById('victoryMessage').style.display = 'block';
+        document.getElementById('victoryMessage').innerHTML = '<p>🎉 Bạn đã chiến thắng! 🎉</p>';
+        setTimeout(() => {
+          endGame();
+        }, 2000); // Kết thúc game sau 2 giây
       }
     }
 
@@ -286,9 +265,7 @@
       moveBullets();
       checkBulletCollisions();
       if (checkCarCollisions()) return;
-
-      checkVictory(); // Kiểm tra chiến thắng
-
+      checkVictory();
       if (Math.random() < 0.02) createObstacles();
     }
 
@@ -298,6 +275,7 @@
       car.x = canvas.width / 2 - 40;
       car.y = canvas.height - 120;
       score = 0;
+      level = 1;
       document.getElementById('score').textContent = 'Điểm: ' + score;
       obstacles = [];
       bullets = [];
@@ -306,7 +284,7 @@
       document.getElementById('gameOverMessage').style.display = 'none';
       document.getElementById('victoryMessage').style.display = 'none';
       document.getElementById('startButton').style.display = 'none';
-      gameInterval = setInterval(draw, 1000 / 60);
+      gameInterval = setInterval(draw, 1000 / 60); // 60 FPS
     }
 
     function endGame() {
