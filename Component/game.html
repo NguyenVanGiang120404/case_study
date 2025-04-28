@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background-color: #333;
+      background-color: #282828;
       font-family: 'Arial', sans-serif;
       color: #fff;
       display: flex;
@@ -17,33 +17,47 @@
       overflow: hidden;
       text-align: center;
       flex-direction: column;
+      padding: 20px;
     }
     #gameCanvas {
       background-color: #444;
       border: 5px solid #fff;
       box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
       margin-top: 20px;
+      border-radius: 10px;
     }
     #score {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: bold;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
     }
-    #gameOverMessage {
+    #gameOverMessage, #victoryMessage {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       color: white;
-      font-size: 32px;
+      font-size: 40px;
       font-weight: bold;
       display: none;
       text-align: center;
       z-index: 3;
-      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
     }
-    #gameOverMessage p { margin-bottom: 20px; }
+    #victoryMessage p {
+      margin-bottom: 20px;
+      font-size: 45px;
+      color: #ffdf00; /* Gold color */
+      text-shadow: 3px 3px 15px rgba(0, 0, 0, 0.7);
+    }
+    #gameOverMessage p {
+      margin-bottom: 20px;
+    }
     #gameOverMessage button, #startButton {
       padding: 12px 30px;
       font-size: 20px;
@@ -61,6 +75,36 @@
       background-color: #ff8f00;
       transform: scale(1.05);
     }
+    #startButton {
+      padding: 15px 40px;
+      font-size: 22px;
+      background-color: #28a745;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+    #startButton:hover {
+      background-color: #218838;
+      transform: scale(1.05);
+    }
+    .firework {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: red;
+      animation: explode 1s forwards;
+    }
+    @keyframes explode {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(5);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -71,10 +115,14 @@
     <p>💥 Game Over! Bạn đã va chạm!</p>
     <button onclick="startGame()">Chơi lại</button>
   </div>
+  <div id="victoryMessage">
+    <p>🎉 Bạn đã chiến thắng! 🎉</p>
+    <button onclick="startGame()">Chơi lại</button>
+  </div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
 
-  <audio id="shootAudio" src="audio/gun fire.mp3"></audio> <!-- Thêm âm thanh bắn -->
-  
+  <audio id="shootAudio" src="audio/gun fire.mp3"></audio>
+
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -101,7 +149,7 @@
     const obstacleImg = new Image();
     obstacleImg.src = 'Image/conga.png';
 
-    const shootAudio = document.getElementById('shootAudio'); // Lấy thẻ âm thanh
+    const shootAudio = document.getElementById('shootAudio');
 
     document.addEventListener('keydown', (e) => {
       keys[e.key] = true;
@@ -147,7 +195,7 @@
         speed: 7
       };
       bullets.push(bullet);
-      shootAudio.play(); // Phát âm thanh khi bắn
+      shootAudio.play();
     }
 
     function moveBullets() {
@@ -193,6 +241,32 @@
       return false;
     }
 
+    function createFireworks() {
+      const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33FF'];
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height / 2; // Bắn pháo hoa từ trên
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      const firework = document.createElement('div');
+      firework.classList.add('firework');
+      firework.style.left = `${x}px`;
+      firework.style.top = `${y}px`;
+      firework.style.backgroundColor = color;
+      document.body.appendChild(firework);
+
+      setTimeout(() => {
+        firework.remove();
+      }, 1000); // Xóa pháo hoa sau 1 giây
+    }
+
+    function checkVictory() {
+      if (score >= 15 && !isGameOver) {
+        endGame();
+        document.getElementById('victoryMessage').style.display = 'block';
+        setTimeout(createFireworks, 500);
+      }
+    }
+
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -213,6 +287,8 @@
       checkBulletCollisions();
       if (checkCarCollisions()) return;
 
+      checkVictory(); // Kiểm tra chiến thắng
+
       if (Math.random() < 0.02) createObstacles();
     }
 
@@ -228,8 +304,9 @@
       isGameOver = false;
       isStarted = true;
       document.getElementById('gameOverMessage').style.display = 'none';
+      document.getElementById('victoryMessage').style.display = 'none';
       document.getElementById('startButton').style.display = 'none';
-      gameInterval = setInterval(draw, 1000 / 120); // 120 FPS
+      gameInterval = setInterval(draw, 1000 / 60);
     }
 
     function endGame() {
