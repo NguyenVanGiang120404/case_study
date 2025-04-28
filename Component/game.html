@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Xe Tăng Bắn Gà</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #333;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      text-align: center;
+      flex-direction: column;
+    }
+    #gameCanvas {
+      background-color: #444;
+      border: 5px solid #fff;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      margin-top: 20px;
+    }
+    #score {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    #gameOverMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+      display: none;
+      text-align: center;
+      z-index: 3;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    #gameOverMessage p { margin-bottom: 20px; }
+    #gameOverMessage button, #startButton {
+      padding: 12px 30px;
+      font-size: 20px;
+      background-color: #ff6f00;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+    #gameOverMessage button:hover, #startButton:hover {
+      background-color: #ff8f00;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="score">Điểm: 0</div>
+  <button id="startButton" onclick="startGame()">Bắt đầu chơi</button>
+  <div id="gameOverMessage">
+    <p>💥 Game Over! Bạn đã va chạm!</p>
+    <button onclick="startGame()">Chơi lại</button>
+  </div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <audio id="shootAudio" src="audio/gun fire.mp3"></audio> <!-- Thêm âm thanh bắn -->
+  
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let gameInterval;
+    let isGameOver = false;
+    let isStarted = false;
+
+    let car = {
+      x: canvas.width / 2 - 40,
+      y: canvas.height - 120,
+      width: 80,
+      height: 120,
+      speed: 5
+    };
+
+    let obstacles = [];
+    let bullets = [];
+    let keys = {};
+
+    const carImg = new Image();
+    carImg.src = 'Image/tank1.jpg';
+
+    const obstacleImg = new Image();
+    obstacleImg.src = 'Image/conga.png';
+
+    const shootAudio = document.getElementById('shootAudio'); // Lấy thẻ âm thanh
+
+    document.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+      if (e.key === ' ' && !isGameOver && isStarted) {
+        shootBullet();
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
+
+    function moveCar() {
+      if (keys['ArrowLeft'] && car.x > 0) car.x -= car.speed;
+      if (keys['ArrowRight'] && car.x < canvas.width - car.width) car.x += car.speed;
+    }
+
+    function createObstacles() {
+      const obstacleWidth = 60;
+      const obstacleHeight = 100;
+      const x = Math.floor(Math.random() * (canvas.width - obstacleWidth));
+      const y = -obstacleHeight;
+      obstacles.push({ x, y, width: obstacleWidth, height: obstacleHeight });
+    }
+
+    function moveObstacles() {
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].y += 1;
+        if (obstacles[i].y > canvas.height) {
+          obstacles.splice(i, 1);
+          score++;
+          document.getElementById('score').textContent = 'Điểm: ' + score;
+        }
+      }
+    }
+
+    function shootBullet() {
+      const bullet = {
+        x: car.x + car.width / 2 - 5,
+        y: car.y,
+        width: 10,
+        height: 20,
+        speed: 7
+      };
+      bullets.push(bullet);
+      shootAudio.play(); // Phát âm thanh khi bắn
+    }
+
+    function moveBullets() {
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        bullets[i].y -= bullets[i].speed;
+        if (bullets[i].y + bullets[i].height < 0) {
+          bullets.splice(i, 1);
+        }
+      }
+    }
+
+    function checkBulletCollisions() {
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        for (let j = obstacles.length - 1; j >= 0; j--) {
+          if (
+            bullets[i].x < obstacles[j].x + obstacles[j].width &&
+            bullets[i].x + bullets[i].width > obstacles[j].x &&
+            bullets[i].y < obstacles[j].y + obstacles[j].height &&
+            bullets[i].y + bullets[i].height > obstacles[j].y
+          ) {
+            bullets.splice(i, 1);
+            obstacles.splice(j, 1);
+            score += 2;
+            document.getElementById('score').textContent = 'Điểm: ' + score;
+            break;
+          }
+        }
+      }
+    }
+
+    function checkCarCollisions() {
+      for (let i = 0; i < obstacles.length; i++) {
+        if (
+          car.x < obstacles[i].x + obstacles[i].width &&
+          car.x + car.width > obstacles[i].x &&
+          car.y < obstacles[i].y + obstacles[i].height &&
+          car.y + car.height > obstacles[i].y
+        ) {
+          endGame();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.drawImage(carImg, car.x, car.y, car.width, car.height);
+
+      for (let i = 0; i < obstacles.length; i++) {
+        ctx.drawImage(obstacleImg, obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+      }
+
+      ctx.fillStyle = 'yellow';
+      for (let i = 0; i < bullets.length; i++) {
+        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+      }
+
+      moveCar();
+      moveObstacles();
+      moveBullets();
+      checkBulletCollisions();
+      if (checkCarCollisions()) return;
+
+      if (Math.random() < 0.02) createObstacles();
+    }
+
+    function startGame() {
+      if (isStarted) clearInterval(gameInterval);
+
+      car.x = canvas.width / 2 - 40;
+      car.y = canvas.height - 120;
+      score = 0;
+      document.getElementById('score').textContent = 'Điểm: ' + score;
+      obstacles = [];
+      bullets = [];
+      isGameOver = false;
+      isStarted = true;
+      document.getElementById('gameOverMessage').style.display = 'none';
+      document.getElementById('startButton').style.display = 'none';
+      gameInterval = setInterval(draw, 1000 / 120); // 120 FPS
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      isGameOver = true;
+      isStarted = false;
+      document.getElementById('gameOverMessage').style.display = 'block';
+      document.getElementById('startButton').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
